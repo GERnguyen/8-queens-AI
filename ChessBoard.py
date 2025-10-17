@@ -15,6 +15,7 @@ class ChessBoard:
         self.speed = 0.05
         self.running = False
         self.pause = False
+        self.done = False
         
     def draw(self, screen):
         for row in range(8):
@@ -32,6 +33,8 @@ class ChessBoard:
 
                 pygame.draw.rect(screen, MEDIUM_BLUE, 
                                (square_x, square_y, self.square_size, self.square_size), 2)
+                if self.done:
+                    self.draw_border(self.screen)
     
     def draw_queens(self, board):
         self.clear_board()
@@ -75,9 +78,28 @@ class ChessBoard:
                         return False
         return True
     
-    def is_goal_state(self, curr_state):
-        queens_count = np.sum(curr_state == 1)
-        return queens_count == 8
+    def is_goal_state(self, board):
+        n = len(board)
+
+        queens = [(r, c) for r in range(n) for c in range(n) if board[r][c] == 1]
+        if len(queens) != 8:
+            return False
+
+        rows = set()
+        cols = set()
+        diag1 = set()  # r - c
+        diag2 = set()  # r + c
+
+        for (r, c) in queens:
+            if r in rows or c in cols or (r - c) in diag1 or (r + c) in diag2:
+                return False
+            rows.add(r)
+            cols.add(c)
+            diag1.add(r - c)
+            diag2.add(r + c)
+
+        return True
+
     
     def next_states(self, curr_state):
         row = np.sum(curr_state == 1) 
@@ -115,5 +137,18 @@ class ChessBoard:
         self.running = True
         self.pause = False
 
+
+
+    def draw_border(self, screen, color=None, thickness=5):
+        if color is None:
+            color = GREEN  
+        
+        border_rect = pygame.Rect(
+            self.x - thickness, 
+            self.y - thickness,
+            self.size + thickness * 2,
+            self.size + thickness * 2
+        )
+        pygame.draw.rect(screen, color, border_rect, thickness)
 
 
